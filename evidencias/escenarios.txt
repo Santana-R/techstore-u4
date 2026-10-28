@@ -1,0 +1,17 @@
+E01 O001 PASS  DRAFT       10%
+E02 O002 PASS  DRAFT       0%
+E03 O003 PASS  DRAFT       InvalidOrderData
+E04 O005 PASS  DRAFT       0%
+E05 O006 PASS  DRAFT       5%
+E06 O007 PASS  DRAFT       InvalidOrderData
+E07 O008 PASS  CONFIRMED   0%
+E08 O009 PASS  DRAFT       OrderItemLimitExceeded
+E09 O010 PASS  DRAFT       0%
+E10 O011 PASS  DRAFT       0%
+E11 O012 PASS  CONFIRMED   InvalidOrderData
+E12 O013 PASS  CONFIRMED   InvalidOrderTransition
+E13 O014 PASS  SHIPPED     InvalidOrderTransition
+E14 O015 PASS  RETURNED    0%
+E15 O016 PASS  DELIVERED   0%
+
+15/15 escenarios verificados con fixtures independientes

@@ -1,0 +1,577 @@
+[
+  {
+    "case": "E01",
+    "order": "O001",
+    "initial": {
+      "status": "DRAFT",
+      "units": 4,
+      "total": "2100.00",
+      "customer": "C001",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "evaluar_descuento",
+    "expected": "10%",
+    "status": "DRAFT",
+    "units": 4,
+    "total": "2100.00",
+    "rate": "10",
+    "discount": "210.00",
+    "payable": "1890.00",
+    "error": null,
+    "message": "",
+    "events": [],
+    "steps": [
+      {
+        "operation": "evaluar_descuento",
+        "result": "evaluada sin modificar el pedido",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E01]",
+    "passed": true
+  },
+  {
+    "case": "E02",
+    "order": "O002",
+    "initial": {
+      "status": "DRAFT",
+      "units": 2,
+      "total": "1050.00",
+      "customer": "C002",
+      "vip": false,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "evaluar_descuento",
+    "expected": "0%",
+    "status": "DRAFT",
+    "units": 2,
+    "total": "1050.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "1050.00",
+    "error": null,
+    "message": "",
+    "events": [],
+    "steps": [
+      {
+        "operation": "evaluar_descuento",
+        "result": "evaluada sin modificar el pedido",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E02]",
+    "passed": true
+  },
+  {
+    "case": "E03",
+    "order": "O003",
+    "initial": {
+      "status": "DRAFT",
+      "units": 4,
+      "total": "2100.00",
+      "customer": "C003",
+      "vip": true,
+      "active": false,
+      "promotion": false
+    },
+    "operation": "confirmar",
+    "expected": "rechazo",
+    "status": "DRAFT",
+    "units": 4,
+    "total": "2100.00",
+    "rate": "10",
+    "discount": "210.00",
+    "payable": "1890.00",
+    "error": "InvalidOrderData",
+    "message": "Confirmar requiere artículos y cliente activo",
+    "events": [],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "InvalidOrderData",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E03]",
+    "passed": true
+  },
+  {
+    "case": "E04",
+    "order": "O005",
+    "initial": {
+      "status": "DRAFT",
+      "units": 4,
+      "total": "2100.00",
+      "customer": "C005",
+      "vip": true,
+      "active": true,
+      "promotion": true
+    },
+    "operation": "evaluar_descuento",
+    "expected": "0%",
+    "status": "DRAFT",
+    "units": 4,
+    "total": "2100.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "2100.00",
+    "error": null,
+    "message": "",
+    "events": [],
+    "steps": [
+      {
+        "operation": "evaluar_descuento",
+        "result": "evaluada sin modificar el pedido",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E04]",
+    "passed": true
+  },
+  {
+    "case": "E05",
+    "order": "O006",
+    "initial": {
+      "status": "DRAFT",
+      "units": 1,
+      "total": "18000.00",
+      "customer": "C006",
+      "vip": false,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "evaluar_descuento",
+    "expected": "5%",
+    "status": "DRAFT",
+    "units": 1,
+    "total": "18000.00",
+    "rate": "5",
+    "discount": "900.00",
+    "payable": "17100.00",
+    "error": null,
+    "message": "",
+    "events": [],
+    "steps": [
+      {
+        "operation": "evaluar_descuento",
+        "result": "evaluada sin modificar el pedido",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E05]",
+    "passed": true
+  },
+  {
+    "case": "E06",
+    "order": "O007",
+    "initial": {
+      "status": "DRAFT",
+      "units": 0,
+      "total": "0.00",
+      "customer": "C007",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar",
+    "expected": "rechazo",
+    "status": "DRAFT",
+    "units": 0,
+    "total": "0.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "0.00",
+    "error": "InvalidOrderData",
+    "message": "Confirmar requiere artículos y cliente activo",
+    "events": [],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "InvalidOrderData",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E06]",
+    "passed": true
+  },
+  {
+    "case": "E07",
+    "order": "O008",
+    "initial": {
+      "status": "DRAFT",
+      "units": 20,
+      "total": "2400.00",
+      "customer": "C008",
+      "vip": false,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar",
+    "expected": "exito",
+    "status": "CONFIRMED",
+    "units": 20,
+    "total": "2400.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "2400.00",
+    "error": null,
+    "message": "",
+    "events": [
+      "OrderConfirmed"
+    ],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "aceptada",
+        "status": "CONFIRMED",
+        "new_event": "OrderConfirmed"
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E07]",
+    "passed": true
+  },
+  {
+    "case": "E08",
+    "order": "O009",
+    "initial": {
+      "status": "DRAFT",
+      "units": 19,
+      "total": "2280.00",
+      "customer": "C009",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "agregar SKU003 x2",
+    "expected": "rechazo",
+    "status": "DRAFT",
+    "units": 19,
+    "total": "2280.00",
+    "rate": "10",
+    "discount": "228.00",
+    "payable": "2052.00",
+    "error": "OrderItemLimitExceeded",
+    "message": "Máximo 20 unidades por pedido",
+    "events": [],
+    "steps": [
+      {
+        "operation": "agregar SKU003 x2",
+        "result": "OrderItemLimitExceeded",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E08]",
+    "passed": true
+  },
+  {
+    "case": "E09",
+    "order": "O010",
+    "initial": {
+      "status": "DRAFT",
+      "units": 2,
+      "total": "500.00",
+      "customer": "C010",
+      "vip": false,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "evaluar_descuento",
+    "expected": "0%",
+    "status": "DRAFT",
+    "units": 2,
+    "total": "500.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "500.00",
+    "error": null,
+    "message": "",
+    "events": [],
+    "steps": [
+      {
+        "operation": "evaluar_descuento",
+        "result": "evaluada sin modificar el pedido",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E09]",
+    "passed": true
+  },
+  {
+    "case": "E10",
+    "order": "O011",
+    "initial": {
+      "status": "DRAFT",
+      "units": 3,
+      "total": "1500.00",
+      "customer": "C011",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "evaluar_descuento",
+    "expected": "0%",
+    "status": "DRAFT",
+    "units": 3,
+    "total": "1500.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "1500.00",
+    "error": null,
+    "message": "",
+    "events": [],
+    "steps": [
+      {
+        "operation": "evaluar_descuento",
+        "result": "evaluada sin modificar el pedido",
+        "status": "DRAFT",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E10]",
+    "passed": true
+  },
+  {
+    "case": "E11",
+    "order": "O012",
+    "initial": {
+      "status": "DRAFT",
+      "units": 1,
+      "total": "850.00",
+      "customer": "C012",
+      "vip": false,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar y enviar sin guia",
+    "expected": "rechazo envio",
+    "status": "CONFIRMED",
+    "units": 1,
+    "total": "850.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "850.00",
+    "error": "InvalidOrderData",
+    "message": "El envío requiere una guía no vacía",
+    "events": [
+      "OrderConfirmed"
+    ],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "aceptada",
+        "status": "CONFIRMED",
+        "new_event": "OrderConfirmed"
+      },
+      {
+        "operation": "enviar sin guía",
+        "result": "InvalidOrderData",
+        "status": "CONFIRMED",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E11]",
+    "passed": true
+  },
+  {
+    "case": "E12",
+    "order": "O013",
+    "initial": {
+      "status": "DRAFT",
+      "units": 1,
+      "total": "600.00",
+      "customer": "C001",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar dos veces",
+    "expected": "rechazo segunda",
+    "status": "CONFIRMED",
+    "units": 1,
+    "total": "600.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "600.00",
+    "error": "InvalidOrderTransition",
+    "message": "Requiere DRAFT; estado actual CONFIRMED",
+    "events": [
+      "OrderConfirmed"
+    ],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "aceptada",
+        "status": "CONFIRMED",
+        "new_event": "OrderConfirmed"
+      },
+      {
+        "operation": "confirmar de nuevo",
+        "result": "InvalidOrderTransition",
+        "status": "CONFIRMED",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E12]",
+    "passed": true
+  },
+  {
+    "case": "E13",
+    "order": "O014",
+    "initial": {
+      "status": "DRAFT",
+      "units": 1,
+      "total": "600.00",
+      "customer": "C002",
+      "vip": false,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar, enviar y cancelar",
+    "expected": "rechazo cancelacion",
+    "status": "SHIPPED",
+    "units": 1,
+    "total": "600.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "600.00",
+    "error": "InvalidOrderTransition",
+    "message": "Requiere CONFIRMED; estado actual SHIPPED",
+    "events": [
+      "OrderConfirmed",
+      "OrderShipped"
+    ],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "aceptada",
+        "status": "CONFIRMED",
+        "new_event": "OrderConfirmed"
+      },
+      {
+        "operation": "enviar con guía",
+        "result": "aceptada",
+        "status": "SHIPPED",
+        "new_event": "OrderShipped"
+      },
+      {
+        "operation": "cancelar después del envío",
+        "result": "InvalidOrderTransition",
+        "status": "SHIPPED",
+        "new_event": null
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E13]",
+    "passed": true
+  },
+  {
+    "case": "E14",
+    "order": "O015",
+    "initial": {
+      "status": "DRAFT",
+      "units": 1,
+      "total": "450.00",
+      "customer": "C005",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar, enviar y devolver",
+    "expected": "exito",
+    "status": "RETURNED",
+    "units": 1,
+    "total": "450.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "450.00",
+    "error": null,
+    "message": "",
+    "events": [
+      "OrderConfirmed",
+      "OrderShipped",
+      "OrderReturned"
+    ],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "aceptada",
+        "status": "CONFIRMED",
+        "new_event": "OrderConfirmed"
+      },
+      {
+        "operation": "enviar con guía",
+        "result": "aceptada",
+        "status": "SHIPPED",
+        "new_event": "OrderShipped"
+      },
+      {
+        "operation": "devolver desde SHIPPED",
+        "result": "aceptada",
+        "status": "RETURNED",
+        "new_event": "OrderReturned"
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E14]",
+    "passed": true
+  },
+  {
+    "case": "E15",
+    "order": "O016",
+    "initial": {
+      "status": "DRAFT",
+      "units": 1,
+      "total": "2100.00",
+      "customer": "C007",
+      "vip": true,
+      "active": true,
+      "promotion": false
+    },
+    "operation": "confirmar, enviar y entregar",
+    "expected": "exito",
+    "status": "DELIVERED",
+    "units": 1,
+    "total": "2100.00",
+    "rate": "0",
+    "discount": "0.00",
+    "payable": "2100.00",
+    "error": null,
+    "message": "",
+    "events": [
+      "OrderConfirmed",
+      "OrderShipped",
+      "OrderDelivered"
+    ],
+    "steps": [
+      {
+        "operation": "confirmar",
+        "result": "aceptada",
+        "status": "CONFIRMED",
+        "new_event": "OrderConfirmed"
+      },
+      {
+        "operation": "enviar con guía",
+        "result": "aceptada",
+        "status": "SHIPPED",
+        "new_event": "OrderShipped"
+      },
+      {
+        "operation": "entregar desde SHIPPED",
+        "result": "aceptada",
+        "status": "DELIVERED",
+        "new_event": "OrderDelivered"
+      }
+    ],
+    "test": "tests/test_scenarios.py::test_escenario[E15]",
+    "passed": true
+  }
+]

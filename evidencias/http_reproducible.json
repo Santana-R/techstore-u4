@@ -1,0 +1,63 @@
+[
+  {
+    "method": "POST",
+    "path": "/orders/O012/confirm",
+    "status_code": 200,
+    "body": {
+      "id": "O012",
+      "customer_id": "C012",
+      "status": "CONFIRMED",
+      "units": 1,
+      "currency": "MXN",
+      "total": "850.00",
+      "discount_percent": "0",
+      "discount": "0.00",
+      "payable": "850.00",
+      "items": [
+        {
+          "sku": "SKU004",
+          "quantity": 1,
+          "unit_price": "850.00",
+          "subtotal": "850.00"
+        }
+      ],
+      "events": [
+        {
+          "name": "OrderConfirmed",
+          "order_id": "O012",
+          "customer_id": "C012",
+          "total": "850.00",
+          "occurred_at": "2026-10-28T00:53:14.455851+00:00",
+          "tracking_number": null,
+          "reason": null
+        }
+      ]
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/orders/O012/confirm",
+    "status_code": 409,
+    "body": {
+      "detail": "Requiere DRAFT; estado actual CONFIRMED",
+      "error": "InvalidOrderTransition"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/orders/O007/confirm",
+    "status_code": 422,
+    "body": {
+      "detail": "Confirmar requiere artículos y cliente activo",
+      "error": "InvalidOrderData"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/orders/NOEXISTE/confirm",
+    "status_code": 404,
+    "body": {
+      "detail": "Pedido inexistente"
+    }
+  }
+]

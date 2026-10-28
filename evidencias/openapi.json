@@ -1,0 +1,557 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TechStore U4",
+    "description": "Laboratorio CLNEG · Pedidos en memoria · FIME UANL",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/orders/{order_id}": {
+      "get": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Get Order",
+        "operationId": "get_order_orders__order_id__get",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/confirm": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Confirm Order",
+        "operationId": "confirm_order_orders__order_id__confirm_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/ship": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Ship Order",
+        "operationId": "ship_order_orders__order_id__ship_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/cancel": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Cancel Order",
+        "operationId": "cancel_order_orders__order_id__cancel_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/deliver": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Deliver Order",
+        "operationId": "deliver_order_orders__order_id__deliver_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/return": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Return Order",
+        "operationId": "return_order_orders__order_id__return_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/items": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Add Item",
+        "operationId": "add_item_orders__order_id__items_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente"
+          },
+          "409": {
+            "description": "Transición no permitida"
+          },
+          "422": {
+            "description": "Datos o regla de negocio inválidos"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CancelBody": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "examples": [
+              "Solicitud del cliente"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "CancelBody"
+      },
+      "EventView": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "order_id": {
+            "type": "string",
+            "title": "Order Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "total": {
+            "type": "string",
+            "title": "Total"
+          },
+          "occurred_at": {
+            "type": "string",
+            "title": "Occurred At"
+          },
+          "tracking_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tracking Number"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "order_id",
+          "customer_id",
+          "total",
+          "occurred_at",
+          "tracking_number",
+          "reason"
+        ],
+        "title": "EventView"
+      },
+      "ItemBody": {
+        "properties": {
+          "sku": {
+            "type": "string",
+            "title": "Sku",
+            "examples": [
+              "SKU003"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Quantity",
+            "examples": [
+              2
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sku",
+          "quantity"
+        ],
+        "title": "ItemBody"
+      },
+      "ItemView": {
+        "properties": {
+          "sku": {
+            "type": "string",
+            "title": "Sku"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "type": "string",
+            "title": "Unit Price"
+          },
+          "subtotal": {
+            "type": "string",
+            "title": "Subtotal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sku",
+          "quantity",
+          "unit_price",
+          "subtotal"
+        ],
+        "title": "ItemView"
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "CONFIRMED",
+          "SHIPPED",
+          "DELIVERED",
+          "CANCELLED",
+          "RETURNED"
+        ],
+        "title": "OrderStatus"
+      },
+      "OrderView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "units": {
+            "type": "integer",
+            "title": "Units"
+          },
+          "currency": {
+            "type": "string",
+            "const": "MXN",
+            "title": "Currency"
+          },
+          "total": {
+            "type": "string",
+            "title": "Total"
+          },
+          "discount_percent": {
+            "type": "string",
+            "title": "Discount Percent"
+          },
+          "discount": {
+            "type": "string",
+            "title": "Discount"
+          },
+          "payable": {
+            "type": "string",
+            "title": "Payable"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventView"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "customer_id",
+          "status",
+          "units",
+          "currency",
+          "total",
+          "discount_percent",
+          "discount",
+          "payable",
+          "items",
+          "events"
+        ],
+        "title": "OrderView"
+      },
+      "ShipBody": {
+        "properties": {
+          "tracking_number": {
+            "type": "string",
+            "title": "Tracking Number",
+            "examples": [
+              "GUIA-U4-001"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tracking_number"
+        ],
+        "title": "ShipBody"
+      }
+    }
+  }
+}
