@@ -4,14 +4,14 @@ Implementa pedidos, reglas de descuento, una máquina de estados, eventos de dom
 
 Integrantes: Roberto Santana Trujillo (2227084) e Isaías Leonardo Salazar Torres (2227016).
 
-Repositorio: https://github.com/Santana-R/techstore-u4
+Repositorio: https://github.com/ileosalazar/techstore-u4
 
 ## Instalación
 
 Requiere Python 3.11 o superior; se verificó con Python 3.12.14. Clona el repositorio y entra a su carpeta.
 
 ```bash
-git clone https://github.com/Santana-R/techstore-u4.git
+git clone https://github.com/ileosalazar/techstore-u4
 cd techstore-u4
 python -m venv .venv
 ```
