@@ -160,8 +160,13 @@ class Order:
 
     def confirm(self):
         self._require(OrderStatus.DRAFT)
-        if not self._items or not self.customer.active:
-            raise InvalidOrderData("Confirmar requiere artículos y cliente activo")
+
+        if not self._items:
+            raise InvalidOrderData("El pedido no contiene artículos")
+
+        if not self.customer.active:
+            raise InvalidOrderData("El cliente está inactivo y no puede confirmarse")        
+
         self._record(OrderStatus.CONFIRMED, "OrderConfirmed")
 
     def ship(self, tracking_number: str):

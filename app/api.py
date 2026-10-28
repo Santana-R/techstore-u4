@@ -80,7 +80,7 @@ def to_view(order):
 
 def create_app():
     api = FastAPI(title="TechStore U4", version="1.0.0",
-                  description="Laboratorio CLNEG · Pedidos en memoria · FIME UANL")
+                  description="CLNEG: Pedidos en memoria")
     api.state.orders = load_fixture()
     api.state.lock = RLock()
     prices = {x["sku"]: Decimal(x["precio_mxn"]) for x in rows("productos.csv")}
@@ -88,8 +88,76 @@ def create_app():
     @api.exception_handler(DomainException)
     async def domain_error(request: Request, exc: DomainException):
         status = 409 if isinstance(exc, InvalidOrderTransition) else 422
-        return JSONResponse(status_code=status,
-                            content={"detail": str(exc), "error": type(exc).__name__})
+
+        detail = str(exc)
+
+        if isinstance(exc, InvalidOrderTransition):
+            if "Requiere DRAFT" in detail:
+                message = (
+                "No se puede confirmar el pedido porque ya está"
+                "confirmado. Comprueba su estado antes de "
+                "volver a confirmarlo."
+                )
+            else:
+                message = (
+                "No se puede realizar esta operación porque "
+                "el pedido no está en el estado requerido."
+            )
+
+        elif detail == "El pedido no contiene artículos":
+            message = (
+            "No se puede confirmar un pedido vacío. "
+            "Agrega al menos un artículo y vuelve a intentarlo."
+            )
+
+        elif detail == "El cliente está inactivo y no puede confirmarse":
+            message = (
+            "El cliente asociado está inactivo. "
+            "Actívalo antes de confirmar el pedido."
+        )
+
+        else:
+            message = (
+            "La operación fue rechazada por una regla de negocio."
+        )
+
+        return JSONResponse(
+        status_code=status,
+        content={
+            "detail": detail,
+            "error": type(exc).__name__,
+            "message": message
+        }
+        )
+
+    @api.exception_handler(HTTPException)
+    async def http_error(request: Request, exc: HTTPException):
+        detail = str(exc.detail)
+
+        if exc.status_code == 404:
+            if detail == "Pedido inexistente":
+                message = (
+                "No se encontró el pedido solicitado. "
+                "Verifica  e inténtalo nuevamente."
+                )
+            elif detail == "Producto inexistente":
+                message = (
+                "No se encontró el producto solicitado. "
+                "Verificalo e inténtalo nuevamente."
+            )
+            else:
+                message = "No se encontró el recurso solicitado."
+        else:
+            message = "La solicitud no pudo completarse."
+
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "detail": exc.detail,
+                "error": type(exc).__name__,
+                "message": message
+            }
+        )
 
     def order_for(order_id):
         order = api.state.orders.get(order_id)
@@ -97,11 +165,21 @@ def create_app():
             raise HTTPException(404, "Pedido inexistente")
         return order
 
-    errors = {404: {"description": "Pedido inexistente"},
-              409: {"description": "Transición no permitida"},
-              422: {"description": "Datos o regla de negocio inválidos"}}
+    errors = {404: {"description": "Pedido inexistente", 
+                    "content": {"application/json": {"example": {"detail": "Pedido inexistente",
+                                                                 "error": "HTTPException",
+                                                                 "message": "Pedido inexistente"}}}},
+              409: {"description": "Transición no permitida",
+                    "content": {"application/json": {"example": {"detail": "Transición no permitida",
+                                                                 "error": "HTTPException",
+                                                                 "message": "Pedido no puede confirmarse dos veces"}}}},
+              422: {"description": "Datos o regla de negocio inválidos",
+                    "content": {"application/json": {"example": {"detail": "Datos o regla de negocio inválidos",
+                                                                 "error": "HTTPException",
+                                                                 "message": "Pedido sin artículos"}}}}}
 
-    @api.get("/orders/{order_id}", response_model=OrderView, tags=["Pedidos"], responses=errors)
+
+    @api.get("/orders/{order_id}", response_model=OrderView, tags=["Pedidos"], responses=errors, )
     def get_order(order_id: str):
         with api.state.lock:
             return to_view(order_for(order_id))

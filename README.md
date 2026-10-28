@@ -1,8 +1,8 @@
 # TechStore U4
 
-Laboratorio de Componentes de Lógica de Negocio de FIME UANL. Implementa pedidos, reglas de descuento, una máquina de estados, eventos de dominio y una API REST sobre los CSV originales del paquete del alumno. La validación produjo 90 pruebas aprobadas y 15 de 15 escenarios verificados.
+Implementa pedidos, reglas de descuento, una máquina de estados, eventos de dominio y una API REST sobre los CSV originales. La validación produjo 90 pruebas aprobadas y 15 de 15 escenarios verificados.
 
-Integrantes: Roberto Santana Trujillo (2227084) e Isaías Leonardo Salazar Torres (2227016). Profesor: Miguel Ángel Gómez Marroquín.
+Integrantes: Roberto Santana Trujillo (2227084) e Isaías Leonardo Salazar Torres (2227016).
 
 Repositorio: https://github.com/Santana-R/techstore-u4
 
@@ -114,11 +114,6 @@ Todos los métodos devuelven 200 cuando la operación es válida. Los importes s
 
 El archivo `diagramas/techstore_estados.drawio` es editable en https://app.diagrams.net. Su PNG se exportó desde draw.io e incluye una copia editable del diagrama. Los recortes del reporte solo encuadran los resultados; las capturas completas se conservan en el repositorio.
 
-El reporte único se encuentra en `reporte/2227084_2227016_AF4_CLNEG_TechStore.pdf`. Incluye los ocho entregables, la bitácora completa, las cinco preguntas resueltas y la reflexión.
 
-## Referencias
 
-- Material del curso: práctica guiada TechStore, manual ilustrado U4 y paquete de CSV y cargador proporcionados por el profesor.
-- FastAPI: https://fastapi.tiangolo.com/tutorial/testing/ y https://fastapi.tiangolo.com/tutorial/handling-errors/
-- pytest: https://docs.pytest.org/en/stable/how-to/parametrize.html
-- Python Decimal: https://docs.python.org/3/library/decimal.html
+
