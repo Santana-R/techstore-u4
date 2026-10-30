@@ -88,7 +88,7 @@
     "discount": "210.00",
     "payable": "1890.00",
     "error": "InvalidOrderData",
-    "message": "Confirmar requiere artículos y cliente activo",
+    "message": "El cliente está inactivo y no puede confirmarse",
     "events": [],
     "steps": [
       {
@@ -190,7 +190,7 @@
     "discount": "0.00",
     "payable": "0.00",
     "error": "InvalidOrderData",
-    "message": "Confirmar requiere artículos y cliente activo",
+    "message": "El pedido no contiene artículos",
     "events": [],
     "steps": [
       {
