@@ -1,14 +1,17 @@
-"""Adaptador HTTP. El dominio protege las reglas y las transiciones."""
+"""Adaptador HTTP con respuestas legibles para el cliente en Swagger."""
+from decimal import Decimal
 from threading import RLock
-from typing import Literal
+
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field
-from app.domain import (DomainException, InvalidOrderTransition, OrderStatus,
-                        Money, OrderItem)
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.domain import (DomainException, InvalidOrderTransition, Money,
+                        OrderItem, OrderItemLimitExceeded, OrderStatus)
 from app.specifications import quote_discount
 from cargar_csv import load_fixture, rows
-from decimal import Decimal
 
 
 class StrictBody(BaseModel):
@@ -16,217 +19,210 @@ class StrictBody(BaseModel):
 
 
 class ShipBody(StrictBody):
-    tracking_number: str = Field(examples=["GUIA-U4-001"])
+    tracking_number: str = Field(
+        description="Número de guía del envío. No debe estar vacío.",
+        examples=["GUIA-U4-001"],
+    )
 
 
 class CancelBody(StrictBody):
-    reason: str = Field(examples=["Solicitud del cliente"])
+    reason: str = Field(
+        description="Motivo de la cancelación. No debe estar vacío.",
+        examples=["Solicitud del cliente"],
+    )
 
 
 class ItemBody(StrictBody):
-    sku: str = Field(examples=["SKU003"])
-    quantity: int = Field(gt=0, examples=[2])
+    sku: str = Field(description="Código del producto en el catálogo.", examples=["SKU003"])
+    quantity: int = Field(gt=0, description="Cantidad entera mayor que cero.", examples=[2])
 
 
-class ItemView(BaseModel):
-    sku: str
-    quantity: int
-    unit_price: str
-    subtotal: str
+STATES = {
+    OrderStatus.DRAFT: "en preparación",
+    OrderStatus.CONFIRMED: "confirmada",
+    OrderStatus.SHIPPED: "enviada",
+    OrderStatus.DELIVERED: "entregada",
+    OrderStatus.CANCELLED: "cancelada",
+    OrderStatus.RETURNED: "devuelta",
+}
+
+TRANSITION_HELP = {
+    "confirm": "Solo se puede confirmar una orden que esté en preparación.",
+    "ship": "Para enviar una orden, primero debe estar confirmada.",
+    "cancel": "Solo se puede cancelar una orden confirmada que aún no se haya enviado.",
+    "deliver": "Para registrar la entrega, la orden debe estar enviada.",
+    "return": "Solo se puede devolver una orden que esté enviada.",
+    "items": "Solo se pueden agregar productos mientras la orden esté en preparación.",
+}
+
+DATA_MESSAGES = {
+    "El pedido no contiene artículos":
+        "No se puede confirmar una orden vacía. Agrega al menos un producto.",
+    "El cliente está inactivo y no puede confirmarse":
+        "No se puede confirmar la orden porque el cliente está inactivo. Activa al cliente primero.",
+    "El envío requiere una guía no vacía":
+        "Escribe el número de guía para poder enviar la orden.",
+    "La cancelación requiere un motivo no vacío":
+        "Escribe el motivo para poder cancelar la orden.",
+    "SKU obligatorio": "Escribe el código del producto que deseas agregar.",
+    "La cantidad debe ser un entero positivo":
+        "La cantidad de productos debe ser un número entero mayor que cero.",
+}
 
 
-class EventView(BaseModel):
-    name: str
-    order_id: str
-    customer_id: str
-    total: str
-    occurred_at: str
-    tracking_number: str | None
-    reason: str | None
-
-
-class OrderView(BaseModel):
-    id: str
-    customer_id: str
-    status: OrderStatus
-    units: int
-    currency: Literal["MXN"]
-    total: str
-    discount_percent: str
-    discount: str
-    payable: str
-    items: list[ItemView]
-    events: list[EventView]
-
-
-def to_view(order):
+def order_summary(order, products):
+    """Consulta comercial sin nombres de clases, eventos ni estados internos."""
     quote = quote_discount(order)
-    return {
-        "id": order.id, "customer_id": order.customer.id,
-        "status": order.status.value, "units": order.units, "currency": "MXN",
-        "total": f"{order.total.amount:.2f}",
-        "discount_percent": f"{quote.rate * 100:.0f}",
-        "discount": f"{quote.discount.amount:.2f}", "payable": f"{quote.payable.amount:.2f}",
-        "items": [{"sku": x.sku, "quantity": x.quantity,
-                   "unit_price": f"{x.unit_price.amount:.2f}",
-                   "subtotal": f"{x.subtotal.amount:.2f}"} for x in order.items],
-        "events": [{"name": e.name, "order_id": e.order_id,
-                    "customer_id": e.customer_id, "total": f"{e.total.amount:.2f}",
-                    "occurred_at": e.occurred_at.isoformat(),
-                    "tracking_number": e.tracking_number, "reason": e.reason}
-                   for e in order.events],
+    lines = [
+        f"Orden {order.id}.",
+        f"Estado: {STATES[order.status]}.",
+        f"Cliente: {order.customer.id}.",
+        f"Unidades: {order.units}.",
+        f"Total antes del descuento: ${order.total.amount:,.2f} MXN.",
+        f"Descuento ({quote.rate * 100:.0f}%): ${quote.discount.amount:,.2f} MXN.",
+        f"Total a pagar: ${quote.payable.amount:,.2f} MXN.",
+    ]
+    if order.items:
+        lines.append("Productos:")
+        for item in order.items:
+            name = products[item.sku]["nombre"]
+            lines.append(f"{item.quantity} × {name}: ${item.subtotal.amount:,.2f} MXN.")
+    else:
+        lines.append("Esta orden todavía no tiene productos.")
+    return "\n".join(lines)
+
+
+def validation_message(exc):
+    error = exc.errors()[0]
+    kind = error["type"]
+    field = error["loc"][-1] if error["loc"] else None
+    labels = {
+        "tracking_number": "el número de guía",
+        "reason": "el motivo de cancelación",
+        "sku": "el código del producto",
+        "quantity": "la cantidad de productos",
     }
+    if kind == "json_invalid":
+        return "No se pudieron leer los datos enviados. Revisa el formato y vuelve a intentarlo."
+    if kind == "extra_forbidden":
+        return "Se enviaron datos adicionales. Completa únicamente los campos solicitados."
+    if kind == "missing" and field in labels:
+        return f"Falta {labels[field]}. Completa ese dato y vuelve a intentarlo."
+    if field == "quantity":
+        return "La cantidad de productos debe ser un número entero mayor que cero."
+    if field in labels:
+        return f"Escribe {labels[field]} como texto."
+    return "Completa los datos solicitados para poder realizar la operación."
 
 
 def create_app():
-    api = FastAPI(title="TechStore U4", version="1.0.0",
-                  description="CLNEG: Pedidos en memoria")
+    api = FastAPI(
+        title="TechStore U4", version="1.1.0",
+        description="Gestión de órdenes con mensajes claros para el cliente.",
+        default_response_class=PlainTextResponse,
+    )
     api.state.orders = load_fixture()
     api.state.lock = RLock()
-    prices = {x["sku"]: Decimal(x["precio_mxn"]) for x in rows("productos.csv")}
+    products = {row["sku"]: row for row in rows("productos.csv")}
 
     @api.exception_handler(DomainException)
     async def domain_error(request: Request, exc: DomainException):
         status = 409 if isinstance(exc, InvalidOrderTransition) else 422
-
-        detail = str(exc)
-
         if isinstance(exc, InvalidOrderTransition):
-            if "Requiere DRAFT" in detail:
-                message = (
-                "No se puede confirmar el pedido porque ya está"
-                "confirmado. Comprueba su estado antes de "
-                "volver a confirmarlo."
-                )
-            else:
-                message = (
-                "No se puede realizar esta operación porque "
-                "el pedido no está en el estado requerido."
-            )
-
-        elif detail == "El pedido no contiene artículos":
-            message = (
-            "No se puede confirmar un pedido vacío. "
-            "Agrega al menos un artículo y vuelve a intentarlo."
-            )
-
-        elif detail == "El cliente está inactivo y no puede confirmarse":
-            message = (
-            "El cliente asociado está inactivo. "
-            "Actívalo antes de confirmar el pedido."
-        )
-
+            action = request.url.path.rsplit("/", 1)[-1]
+            with api.state.lock:
+                order = api.state.orders[request.path_params["order_id"]]
+                if action == "confirm" and order.status == OrderStatus.CONFIRMED:
+                    message = "La orden ya está confirmada. No se puede confirmar otra vez."
+                else:
+                    message = f"La orden está {STATES[order.status]}. {TRANSITION_HELP[action]}"
+        elif isinstance(exc, OrderItemLimitExceeded):
+            message = "No se pueden agregar esos productos: una orden admite como máximo 20 unidades."
         else:
-            message = (
-            "La operación fue rechazada por una regla de negocio."
-        )
+            message = DATA_MESSAGES.get(
+                str(exc), "No se pudo completar la operación. Revisa los datos de la orden."
+            )
+        return PlainTextResponse(message, status_code=status)
 
-        return JSONResponse(
-        status_code=status,
-        content={
-            "detail": detail,
-            "error": type(exc).__name__,
-            "message": message
-        }
-        )
-
-    @api.exception_handler(HTTPException)
-    async def http_error(request: Request, exc: HTTPException):
-        detail = str(exc.detail)
-
+    @api.exception_handler(StarletteHTTPException)
+    async def http_error(request: Request, exc: StarletteHTTPException):
         if exc.status_code == 404:
-            if detail == "Pedido inexistente":
-                message = (
-                "No se encontró el pedido solicitado. "
-                "Verifica  e inténtalo nuevamente."
-                )
-            elif detail == "Producto inexistente":
-                message = (
-                "No se encontró el producto solicitado. "
-                "Verificalo e inténtalo nuevamente."
-            )
-            else:
-                message = "No se encontró el recurso solicitado."
+            message = {
+                "Orden no existe.": "Orden no existe.",
+                "Producto no existe.": "Producto no existe. Revisa su código en el catálogo.",
+            }.get(str(exc.detail), "La página o la operación solicitada no existe.")
+        elif exc.status_code == 405:
+            message = "Esta operación no está disponible para la solicitud enviada."
         else:
-            message = "La solicitud no pudo completarse."
+            message = "No se pudo completar la solicitud. Revisa los datos e inténtalo nuevamente."
+        return PlainTextResponse(message, status_code=exc.status_code, headers=exc.headers)
 
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={
-                "detail": exc.detail,
-                "error": type(exc).__name__,
-                "message": message
-            }
-        )
+    @api.exception_handler(RequestValidationError)
+    async def invalid_request(request: Request, exc: RequestValidationError):
+        return PlainTextResponse(validation_message(exc), status_code=422)
 
     def order_for(order_id):
         order = api.state.orders.get(order_id)
         if order is None:
-            raise HTTPException(404, "Pedido inexistente")
+            raise HTTPException(404, "Orden no existe.")
         return order
 
-    errors = {404: {"description": "Pedido inexistente", 
-                    "content": {"application/json": {"example": {"detail": "Pedido inexistente",
-                                                                 "error": "HTTPException",
-                                                                 "message": "Pedido inexistente"}}}},
-              409: {"description": "Transición no permitida",
-                    "content": {"application/json": {"example": {"detail": "Transición no permitida",
-                                                                 "error": "HTTPException",
-                                                                 "message": "Pedido no puede confirmarse dos veces"}}}},
-              422: {"description": "Datos o regla de negocio inválidos",
-                    "content": {"application/json": {"example": {"detail": "Datos o regla de negocio inválidos",
-                                                                 "error": "HTTPException",
-                                                                 "message": "Pedido sin artículos"}}}}}
+    def response_example(message):
+        return {"content": {"text/plain": {"schema": {"type": "string"}, "example": message}}}
 
+    errors = {
+        404: {"description": "Orden o producto no encontrado", **response_example("Orden no existe.")},
+        409: {"description": "La operación no se puede realizar en el estado actual",
+              **response_example("La orden ya está confirmada. No se puede confirmar otra vez.")},
+        422: {"description": "Falta un dato o no se cumple una condición de la orden",
+              **response_example("No se puede confirmar una orden vacía. Agrega al menos un producto.")},
+    }
+    route_options = {"tags": ["Órdenes"], "responses": errors}
 
-    @api.get("/orders/{order_id}", response_model=OrderView, tags=["Pedidos"], responses=errors, )
+    @api.get("/orders/{order_id}", summary="Consultar una orden", **route_options)
     def get_order(order_id: str):
         with api.state.lock:
-            return to_view(order_for(order_id))
+            return order_summary(order_for(order_id), products)
 
-    @api.post("/orders/{order_id}/confirm", response_model=OrderView, tags=["Pedidos"], responses=errors)
+    @api.post("/orders/{order_id}/confirm", summary="Confirmar una orden", **route_options)
     def confirm_order(order_id: str):
         with api.state.lock:
-            order = order_for(order_id)
-            order.confirm()
-            return to_view(order)
+            order_for(order_id).confirm()
+            return "Orden confirmada."
 
-    @api.post("/orders/{order_id}/ship", response_model=OrderView, tags=["Pedidos"], responses=errors)
+    @api.post("/orders/{order_id}/ship", summary="Enviar una orden", **route_options)
     def ship_order(order_id: str, body: ShipBody):
         with api.state.lock:
-            order = order_for(order_id)
-            order.ship(body.tracking_number)
-            return to_view(order)
+            order_for(order_id).ship(body.tracking_number)
+            return "Orden enviada."
 
-    @api.post("/orders/{order_id}/cancel", response_model=OrderView, tags=["Pedidos"], responses=errors)
+    @api.post("/orders/{order_id}/cancel", summary="Cancelar una orden", **route_options)
     def cancel_order(order_id: str, body: CancelBody):
         with api.state.lock:
-            order = order_for(order_id)
-            order.cancel(body.reason)
-            return to_view(order)
+            order_for(order_id).cancel(body.reason)
+            return "Orden cancelada."
 
-    @api.post("/orders/{order_id}/deliver", response_model=OrderView, tags=["Pedidos"], responses=errors)
+    @api.post("/orders/{order_id}/deliver", summary="Registrar la entrega de una orden", **route_options)
     def deliver_order(order_id: str):
         with api.state.lock:
-            order = order_for(order_id)
-            order.deliver()
-            return to_view(order)
+            order_for(order_id).deliver()
+            return "Orden entregada."
 
-    @api.post("/orders/{order_id}/return", response_model=OrderView, tags=["Pedidos"], responses=errors)
+    @api.post("/orders/{order_id}/return", summary="Registrar la devolución de una orden", **route_options)
     def return_order(order_id: str):
         with api.state.lock:
-            order = order_for(order_id)
-            order.return_order()
-            return to_view(order)
+            order_for(order_id).return_order()
+            return "Devolución de la orden registrada."
 
-    @api.post("/orders/{order_id}/items", response_model=OrderView, tags=["Pedidos"], responses=errors)
+    @api.post("/orders/{order_id}/items", summary="Agregar un producto a una orden", **route_options)
     def add_item(order_id: str, body: ItemBody):
         with api.state.lock:
             order = order_for(order_id)
-            if body.sku not in prices:
-                raise HTTPException(404, "SKU inexistente")
-            order.add_item(OrderItem(body.sku, body.quantity, Money(prices[body.sku])))
-            return to_view(order)
+            if body.sku not in products:
+                raise HTTPException(404, "Producto no existe.")
+            price = Money(Decimal(products[body.sku]["precio_mxn"]))
+            order.add_item(OrderItem(body.sku, body.quantity, price))
+            return "Producto agregado a la orden."
 
     return api
 
